@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from .models.users import Users
 
 
 app = FastAPI()
@@ -20,5 +21,9 @@ app.add_middleware(
 
 
 @app.get("/", tags=["root"])
-async def read_root() -> dict:
-    return {"message": "Welcome to your todo list."}
+async def read_root() -> str:
+    return "message"
+
+@app.post("/api/signup", tags=[Users])
+async def signup(user: Users):
+    return user
