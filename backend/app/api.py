@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .models.users import Users
+from app.controllers import users_controller
 
 
 app = FastAPI()
@@ -19,11 +19,8 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-
-@app.get("/", tags=["root"])
-async def read_root() -> str:
-    return "message"
-
-@app.post("/api/signup", tags=[Users])
-async def signup(user: Users):
-    return user
+app.include_router(
+    router=users_controller.router,
+    prefix="/api",
+    tags=["users"],
+)
