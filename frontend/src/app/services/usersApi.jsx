@@ -1,11 +1,15 @@
 import api from './api';
 
-const test = () => {
-    return api.get("api/test");
+const signup = (users) => {
+    return api.post("api/signup/", users,{
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
 }
 
 const usersApi = {
-    test : test
+    signup: signup
 }
 
 export default usersApi;
