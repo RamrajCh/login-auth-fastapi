@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Form
 from fastapi.responses import JSONResponse
 from app.services.user_service import UserService
 from app.models.users import Users
@@ -39,4 +39,12 @@ def confirm_email(verify: str = Query(..., description="Token to verify user and
 @router.get("/users/", response_model=list[Users])
 def get_all_users(service: UserService=Depends()):
     return user_service.get_all_users()
-    
+
+
+@router.post("/verify-captcha/")
+def verify_captcha(captcha_token: str, service: UserService = Depends()):
+    try:
+        service.verify_captcha(captcha_token)
+        return JSONResponse(content={"success": "Hcaptcha Verified"}, status_code=200)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=400)

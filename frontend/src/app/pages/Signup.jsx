@@ -1,6 +1,7 @@
 import React from 'react';
 import usersApi from '../services/usersApi';
 import { RiEyeFill, RiEyeOffFill } from 'react-icons/ri';
+import HCaptcha from '@hcaptcha/react-hcaptcha';
 import {
   ChakraProvider,
   Box,
@@ -16,6 +17,7 @@ import {
 import colorSchemes from '../common/colorSchemes';
 import {useState, useEffect} from 'react';
 import passwordUtils from "../common/passwordUtils.jsx";
+import config from '../config/config.js';
 
 const Signup = () => {
   const [userData, setUserData] = useState({
@@ -28,7 +30,8 @@ const Signup = () => {
   const [errors, setErrors] = useState(null);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState(null);
   const passwordMatch = userData.password === confirmPassword;
   
   const onUsernameChange = (uname) => {
@@ -61,7 +64,8 @@ const Signup = () => {
     "user_name": "",
     "email": "",
     "password": "",
-    "confirm_password": ""
+    "confirm_password": "",
+    "captcha": ""
   };
     // Empty Validation
     if (userData.user_name === ""){
@@ -80,7 +84,6 @@ const Signup = () => {
       errorCount += 1;
       error["confirm_password"] = "Confirm Password is required field.";
     }
-
     if (errorCount > 0) {
       setErrors(error);
       return false;
@@ -98,16 +101,28 @@ const Signup = () => {
       return false;
     }
 
+    if (passwordStrength < 50) {
+      setErrors({...errors, password: "Password is really weak. Please choose strong one."}); 
+      return false;
+    }
+
     var validation = passwordUtils.checkPasswordValidity(userData.password, confirmPassword)
     if(!validation[0]){
       setErrors({...errors, password: validation[1]});
       return false;
     }
+
+    // Captcha Validation
+    if (captchaToken === null) {
+      setErrors({...errors, captcha: "Please complete the hCaptcha verification."});
+      return false;
+    }
+
     return true;
   }
 
   const handleSubmit = () => {
-    console.log(JSON.stringify(userData))
+    setErrors(null);
     setIsLoading(true);
     if (checkValidity()) {
       usersApi.signup(JSON.stringify(userData)).then((res) => {
@@ -124,14 +139,19 @@ const Signup = () => {
   };
 
   const getBackgroundColor = (strength) => {
-  if (strength <= 35) {
-    return 'red.500';
-  } else if (strength <= 75) {
-    return 'yellow.500';
-  } else {
-    return 'green.500';
+    if (strength <= 35) {
+      return colorSchemes.danger;
+    } else if (strength <= 75) {
+      return colorSchemes.warning;
+    } else {
+      return colorSchemes.success;
+    }
+  };
+
+  const handleCaptchaVerification = (token, ekey) => {
+    console.log('asdasdasdadada    ', token);
+    setCaptchaToken(token);
   }
-};
 
   const passwordStrength = calculatePasswordStrength();
 
@@ -156,7 +176,7 @@ const Signup = () => {
           <Input type="text" id="username" placeholder="Username" borderRadius="md" size="lg"
           value={userData.username} 
           onChange={(e) => onUsernameChange(e.target.value)}/>
-          {errors !== null && 
+          {errors && errors?.username !== "" && 
             <Text fontSize="sm" color={colorSchemes.danger} mb={2}>
               {errors.user_name}
             </Text>
@@ -169,7 +189,7 @@ const Signup = () => {
           <Input type="email" id="email" placeholder="Email" borderRadius="md" size="lg" 
           value={userData.email} 
           onChange={(e) => onEmailChange(e.target.value)}/>
-          {errors !== null && 
+          {errors && errors?.email !== "" && 
             <Text fontSize="sm" color={colorSchemes.danger} mb={2}>
               {errors.email}
             </Text>
@@ -196,7 +216,7 @@ const Signup = () => {
                 />
               </InputRightElement>
             </InputGroup>
-            {errors !== null && 
+            {errors && errors?.password !== "" && 
               <Text fontSize="sm" color={colorSchemes.danger} mb={2}>
                 {errors.password}
               </Text>
@@ -224,19 +244,32 @@ const Signup = () => {
           type={showPassword ? 'text' : 'password'}
           id="confirm-password" placeholder="Confirm Password" borderRadius="md" size="lg"
           onChange={(e) => setConfirmPassword(e.target.value)}/>
-          {errors !== null && 
+          {errors && errors?.confirm_password !== "" && 
               <Text fontSize="sm" color={colorSchemes.danger} mb={2}>
                 {errors.confirm_password}
               </Text>
             }
           {(userData.password !== "") && (!passwordMatch ?
             <Text fontSize="sm" color={colorSchemes.danger} mb={2}>
-              Password doesnot match.
+              Password and Confirm Password doesnot match.
             </Text> :
             <Text fontSize="sm" color={colorSchemes.success} mb={2}>
-              Password match.
+              Password and Confirm Password match.
             </Text>
           )}
+        </FormControl>
+
+        <FormControl mb={4}>
+          <HCaptcha
+            sitekey={config.HCAPTCHA_SITE_KEY}
+            onVerify={(token,ekey) => handleCaptchaVerification(token, ekey)}
+            onExpire={() => {setCaptchaToken(null)}}
+          />
+          {errors && errors?.captcha !== "" && 
+              <Text fontSize="sm" color={colorSchemes.danger} mb={2}>
+                {errors.captcha}
+              </Text>
+            }
         </FormControl>
 
         {/* Register Button */}

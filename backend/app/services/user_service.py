@@ -4,6 +4,11 @@ from app.repository import users_repository, token_repository, email_confirmatio
 from app.utils.security import create_token, create_uuid
 import bcrypt
 from app.utils.send_email import send_confirmation_email
+import requests
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 class UserService:
     def __init__(self):
@@ -44,6 +49,20 @@ class UserService:
         if not user:
             raise Exception("Please provide valid token as query parameter.")
         return user
+
+    def verify_captcha(captcha_token):
+        hcaptcha_secret_key = os.getenv("HCAPTCHA_SECRET_KEY")
+        hcaptcha_verification_url = os.getenv("HCAPTCHA_BASE_URL")
+        response = requests.post(
+        hcaptcha_verification_url,
+        data={
+            "secret": hcaptcha_secret_key,
+            "response": captcha_token,
+        },)
+
+        if response.status_code != 200 or not response.json()["success"]:
+            raise Exception("hCaptcha verification failed")
+        return
 
     def __is_user_valid(self, user):
         if (self.user_repository.get_user_by_username(user.user_name)): return (False, 'user_name')
