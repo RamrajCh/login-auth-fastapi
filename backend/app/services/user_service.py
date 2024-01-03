@@ -50,7 +50,7 @@ class UserService:
             raise Exception("Please provide valid token as query parameter.")
         return user
 
-    def verify_captcha(captcha_token):
+    def verify_captcha(self,captcha_token):
         hcaptcha_secret_key = os.getenv("HCAPTCHA_SECRET_KEY")
         hcaptcha_verification_url = os.getenv("HCAPTCHA_BASE_URL")
         response = requests.post(
@@ -63,6 +63,23 @@ class UserService:
         if response.status_code != 200 or not response.json()["success"]:
             raise Exception("hCaptcha verification failed")
         return
+    
+    def login_user(self, req_body):
+        user = self.user_repository.get_user_by_username(req_body["user_name"])
+        if not user:
+            user = self.user_repository.get_user_by_email(req_body["user_name"])
+            if not user:
+                raise Exception("Invalid login credentials. Try again!!")
+        verified_pw = self.__verify_password(req_body["password"], user.password)
+        if verified_pw:
+            if not user.is_verified:
+                self.send_confirmation_email(user.user_name)
+                raise Exception("The user is not verified. Please verify. Confirmation link is sent to email.")
+            new_token = create_token(data={"sub": user.user_name})
+            token = self.token_repository.create_token(username=user.user_name, token=new_token)
+            return {"user_name": user.user_name, "token": token.token}
+        else:
+            raise Exception("Invalid login credentials. Try again!!")
 
     def __is_user_valid(self, user):
         if (self.user_repository.get_user_by_username(user.user_name)): return (False, 'user_name')

@@ -12,10 +12,10 @@ import {
   Text,
   FormControl,
   FormLabel,
-  Stack,
+  Stack, Alert, AlertIcon, CloseButton,
 } from '@chakra-ui/react';
 import colorSchemes from '../common/colorSchemes';
-import {useState, useEffect} from 'react';
+import {useState} from 'react';
 import passwordUtils from "../common/passwordUtils.jsx";
 import config from '../config/config.js';
 
@@ -31,8 +31,9 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState(null);
+  const [captchaVerified, setCaptchaVerified] = useState(false);
   const passwordMatch = userData.password === confirmPassword;
+  const [notification, setNotification] = useState(null);
   
   const onUsernameChange = (uname) => {
     if (errors !== null && uname !== null){
@@ -113,7 +114,7 @@ const Signup = () => {
     }
 
     // Captcha Validation
-    if (captchaToken === null) {
+    if (!captchaVerified) {
       setErrors({...errors, captcha: "Please complete the hCaptcha verification."});
       return false;
     }
@@ -149,9 +150,19 @@ const Signup = () => {
   };
 
   const handleCaptchaVerification = (token, ekey) => {
-    console.log('asdasdasdadada    ', token);
-    setCaptchaToken(token);
+    var captchaToken = {
+      token: token
+    }
+    usersApi.verifyCaptcha(captchaToken).then((res) => {
+      setCaptchaVerified(true);
+    }).catch((e) => {
+      setCaptchaVerified(false);
+    })
   }
+
+  const closeNotification = () => {
+    setNotification(null);
+  };
 
   const passwordStrength = calculatePasswordStrength();
 
@@ -169,6 +180,15 @@ const Signup = () => {
         <Heading mb={6} color={colorSchemes.primary}>
           Signup
         </Heading>
+
+        {/* Notification Bar */}
+        {notification && (
+          <Alert status={notification.type} mb={4} rounded="md">
+            <AlertIcon />
+            {notification.message}
+            <CloseButton onClick={closeNotification} position="absolute" right="8px" top="8px" />
+          </Alert>
+        )}
 
         {/* Username Input */}
         <FormControl mb={4} isRequired>
@@ -263,7 +283,7 @@ const Signup = () => {
           <HCaptcha
             sitekey={config.HCAPTCHA_SITE_KEY}
             onVerify={(token,ekey) => handleCaptchaVerification(token, ekey)}
-            onExpire={() => {setCaptchaToken(null)}}
+            onExpire={() => {setCaptchaVerified(false)}}
           />
           {errors && errors?.captcha !== "" && 
               <Text fontSize="sm" color={colorSchemes.danger} mb={2}>

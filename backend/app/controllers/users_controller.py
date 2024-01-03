@@ -9,10 +9,19 @@ user_service = UserService()
 @router.post("/signup/")
 def signup(user: Users, service: UserService = Depends()) -> dict:
     try:
-        user = service.create_user(user)
+        reg_user = service.create_user(user)
+        return JSONResponse(content=reg_user, status_code=200)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=400)
+
+@router.post("/signin/")
+def signin(req_body: dict, service: UserService = Depends()) -> dict:
+    try:
+        user = service.login_user(req_body)
         return JSONResponse(content=user, status_code=200)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=400)
+    
 
 @router.post("/send-confirm-email/{username:str}")
 def send_confirm_email(username:str, service: UserService = Depends()) -> dict:
@@ -42,9 +51,9 @@ def get_all_users(service: UserService=Depends()):
 
 
 @router.post("/verify-captcha/")
-def verify_captcha(captcha_token: str, service: UserService = Depends()):
+def verify_captcha(captcha_token: dict, service: UserService = Depends()):
     try:
-        service.verify_captcha(captcha_token)
+        service.verify_captcha(captcha_token["token"])
         return JSONResponse(content={"success": "Hcaptcha Verified"}, status_code=200)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=400)
