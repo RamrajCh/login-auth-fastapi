@@ -1,5 +1,24 @@
 # login-auth-fastapi
 
+## Environment variables
+
+The required environment variables can be found in `./backend/.test-env`. The contents from the that file are as follows:
+```
+DATABASE_URL = <Your database>
+SMTP_SERVER = <Your smpt server>
+SMTP_PORT = <Your smtp port>
+SMTP_USERNAME = <Your smtp username>
+SMTP_PASSWORD = <Your smtp password>
+BASE_URL = 'http://localhost:8000'
+HCAPTCHA_SECRET_KEY = <HCaptcha Secret Key>
+HCAPTCHA_BASE_URL = <HCaptcha Base url>
+JWT_SECRET_KEY = <Your secret JWT key>
+JWT_ALGORITHM = <JWT algorithm to use>
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES = <JWT expiry time in minutes>
+```
+
+Copy these configuration keys and paste to `.env`. Add all the values accurately.
+
 ## Backend server
 
 Follow the steps below to run backend FastAPI server.
