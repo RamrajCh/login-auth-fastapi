@@ -41,7 +41,7 @@ class UserService:
         email_verifications = self.email_confirmation_repository.get_token_by_username(username)
         if not email_verifications :
             self.__send_confirmation_email(user)
-        # send_confirmation_email(user, email_verifications.token)
+        send_confirmation_email(user, email_verifications.token)
         return True
 
     def confirm_email(self, token):
@@ -106,5 +106,5 @@ class UserService:
     def __send_confirmation_email(self, user:Users):
         token = create_uuid()
         self.email_confirmation_repository.create_token(username=user.user_name, token=token)
-        # send_confirmation_email(user, token)
+        send_confirmation_email(user, token)
         return
