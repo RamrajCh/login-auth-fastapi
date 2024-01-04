@@ -81,6 +81,12 @@ class UserService:
         else:
             raise Exception("Invalid login credentials. Try again!!")
 
+    def get_user_via_token(self, token):
+        user = self.token_repository.get_user_via_token(token)
+        if not user:
+            raise Exception("Invalid token!!")
+        return {"user_name": user.user_name, "email": user.email, "is_verified": user.is_verified}
+
     def __is_user_valid(self, user):
         if (self.user_repository.get_user_by_username(user.user_name)): return (False, 'user_name')
         elif (self.user_repository.get_user_by_email(user.email)): return (False, 'email')

@@ -12,14 +12,17 @@ import {
 } from '@chakra-ui/react';
 import colorSchemes from '../common/colorSchemes';
 import usersApi from '../services/usersApi';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Signin = () => {
   const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const notification_1 = location.state;
+  const [notification, setNotification] = useState(notification_1);
 
-  const [notification, setNotification] = useState(null);
-  
   const closeNotification = () => {
     setNotification(null);
   };
@@ -27,13 +30,15 @@ const Signin = () => {
   const handleLogin = () => {
     setLoading(true);
     usersApi.signin({user_name: usernameOrEmail, password: password}).then((res) => {
-      setNotification({
+      var notFic = {
         'message': "Login successful!!",
         'type': "success"
-      });
+      };
+      sessionStorage.setItem('token', res.data.token)
+      navigate("/", {state: notFic});
     }).catch((e) => {
       setNotification({
-        'message': e.response.data.error,
+        'message': "Login credentials doesnot match",
         'type': "error"
       });
     }).finally(() => {
@@ -108,7 +113,8 @@ const Signin = () => {
             {/* Prompt */}
             <Text>
                 Not a user?{' '}
-                <ChakraLink href="/signup" color={colorSchemes.primary} textDecoration="underline">
+                <ChakraLink href="/signup"
+                color={colorSchemes.primary} textDecoration="underline">
                     Register instead.
                 </ChakraLink>
             </Text>

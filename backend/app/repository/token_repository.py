@@ -1,4 +1,4 @@
-from app.utils.database import SessionLocal, Token
+from app.utils.database import SessionLocal, Token, User
 from app.models.token import Token as JWTToken
 from app.utils.security import is_token_expired
 
@@ -19,3 +19,7 @@ class TokenRepository:
                 session.refresh(db_token)
                 return JWTToken(user_name=db_token.user_name, token=db_token.token)
 
+    def get_user_via_token(self, token:str):
+        with SessionLocal() as session:
+            token = session.query(Token).filter_by(token=token).first()
+            return session.query(User). filter_by(user_name=token.user_name).first()

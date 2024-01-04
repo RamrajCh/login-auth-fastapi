@@ -16,10 +16,12 @@ import {
 } from '@chakra-ui/react';
 import colorSchemes from '../common/colorSchemes';
 import {useState} from 'react';
+import { useNavigate } from 'react-router-dom';
 import passwordUtils from "../common/passwordUtils.jsx";
 import config from '../config/config.js';
 
 const Signup = () => {
+  const navigate = useNavigate();
   const [userData, setUserData] = useState({
     "user_name": "",
     "email": "",
@@ -127,12 +129,19 @@ const Signup = () => {
     setIsLoading(true);
     if (checkValidity()) {
       usersApi.signup(JSON.stringify(userData)).then((res) => {
-      console.log(res.data)
+        var notification = {
+          message: `Hi, ${userData.user_name}, you have successfully signed up. Before trying to login, confirm your email by clicking on the link provided in email.`,
+          type: "success"
+        }
+        navigate("/signin", {state: notification});
       }).catch((e)=>{
-        console.log(e)
+        setNotification({
+          'message': e.response.data.error,
+          'type': "error"
+        });
       })
     }
-    setIsLoading(false)
+    setIsLoading(false);
   }
 
   const calculatePasswordStrength = () => {
@@ -304,7 +313,7 @@ const Signup = () => {
         {/* Login Link */}
         <Text>
           Already a user?{' '}
-          <ChakraLink href="/login" color={colorSchemes.primary} textDecoration="underline">
+          <ChakraLink href="/signin" color={colorSchemes.primary} textDecoration="underline">
             Login instead.
           </ChakraLink>
         </Text>

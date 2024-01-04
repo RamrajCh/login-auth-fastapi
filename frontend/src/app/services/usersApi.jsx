@@ -16,10 +16,15 @@ const verifyCaptcha = (captchaToken) => {
     return api.post("api/verify-captcha/", captchaToken);
 }
 
+const getUserByToken = (token) => {
+    return api.post("api/user-by-token/", token);
+}
+
 const usersApi = {
     signup: signup,
     signin: signin,
-    verifyCaptcha: verifyCaptcha
+    verifyCaptcha: verifyCaptcha,
+    getUserByToken: getUserByToken
 }
 
 export default usersApi;

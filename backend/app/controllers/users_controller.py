@@ -31,7 +31,7 @@ def send_confirm_email(username:str, service: UserService = Depends()) -> dict:
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=400) 
 
-@router.post("/confirm-email")
+@router.get("/confirm-email")
 def confirm_email(verify: str = Query(..., description="Token to verify user and email"),
     service: UserService=Depends()) -> dict:
     if not verify:
@@ -55,5 +55,13 @@ def verify_captcha(captcha_token: dict, service: UserService = Depends()):
     try:
         service.verify_captcha(captcha_token["token"])
         return JSONResponse(content={"success": "Hcaptcha Verified"}, status_code=200)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=400)
+
+@router.post("/user-by-token/")
+def get_user_via_token(token:dict, service: UserService = Depends()):
+    try:
+        user = service.get_user_via_token(token["token"])
+        return JSONResponse(content=user, status_code=200)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=400)
