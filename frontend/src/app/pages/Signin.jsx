@@ -38,7 +38,7 @@ const Signin = () => {
       navigate("/", {state: notFic});
     }).catch((e) => {
       setNotification({
-        'message': "Login credentials doesnot match",
+        'message': e.response.data.error,
         'type': "error"
       });
     }).finally(() => {
